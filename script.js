@@ -98,7 +98,7 @@ window.addEventListener('scroll', () => {
 });
 
 // ==========================================
-// Contact Form Handling
+// Contact Form Handling with Web3Forms
 // ==========================================
 const contactForm = document.getElementById('contactForm');
 const formMessage = document.getElementById('formMessage');
@@ -107,25 +107,38 @@ if (contactForm) {
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Get form data
-        const formData = new FormData(contactForm);
-        const data = Object.fromEntries(formData);
-        
-        // Show loading state
+        // Get submit button
         const submitButton = contactForm.querySelector('button[type="submit"]');
         const originalText = submitButton.textContent;
         submitButton.textContent = 'Enviando...';
         submitButton.disabled = true;
         
-        // Simulate form submission (replace with actual backend endpoint)
-        setTimeout(() => {
-            // Show success message
-            formMessage.className = 'form-message success';
-            formMessage.textContent = '¡Mensaje enviado exitosamente! Nos pondremos en contacto contigo pronto.';
+        // Get form data
+        const formData = new FormData(contactForm);
+        
+        try {
+            const response = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: formData
+            });
             
-            // Reset form
-            contactForm.reset();
+            const data = await response.json();
             
+            if (data.success) {
+                // Show success message
+                formMessage.className = 'form-message success';
+                formMessage.textContent = '¡Mensaje enviado exitosamente! Nos pondremos en contacto contigo pronto.';
+                
+                // Reset form
+                contactForm.reset();
+            } else {
+                throw new Error('Error al enviar el mensaje');
+            }
+        } catch (error) {
+            // Show error message
+            formMessage.className = 'form-message error';
+            formMessage.textContent = 'Hubo un error al enviar el mensaje. Por favor, intenta nuevamente o contáctanos por WhatsApp.';
+        } finally {
             // Reset button
             submitButton.textContent = originalText;
             submitButton.disabled = false;
@@ -135,39 +148,7 @@ if (contactForm) {
                 formMessage.className = 'form-message';
                 formMessage.textContent = '';
             }, 5000);
-        }, 1500);
-        
-        // For production, use this structure:
-        /*
-        try {
-            const response = await fetch('YOUR_BACKEND_ENDPOINT', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-            
-            if (response.ok) {
-                formMessage.className = 'form-message success';
-                formMessage.textContent = '¡Mensaje enviado exitosamente!';
-                contactForm.reset();
-            } else {
-                throw new Error('Error al enviar el mensaje');
-            }
-        } catch (error) {
-            formMessage.className = 'form-message error';
-            formMessage.textContent = 'Hubo un error al enviar el mensaje. Por favor, intenta nuevamente.';
-        } finally {
-            submitButton.textContent = originalText;
-            submitButton.disabled = false;
-            
-            setTimeout(() => {
-                formMessage.className = 'form-message';
-                formMessage.textContent = '';
-            }, 5000);
         }
-        */
     });
 }
 
